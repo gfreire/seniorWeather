@@ -1,0 +1,23 @@
+
+<ion-view cache-view="false" view-title="Cidades">
+
+  <ion-content class="padding scroll-bg">
+
+    <div class="list list-inset">
+      <div class="item item-divider">Nova Cidade</div>
+      <label class="item item-input">
+        <input type="text" placeholder="Campinas" ng-model="model.city">
+      </label>
+      <button class="button button-block button-balanced" ng-click="addCity(model.city)">Adicionar</button>
+    </div>
+  <div class="item item-divider">
+    Cidades:
+  </div>
+    <ion-list show-delete="true" can-swipe="true">
+      <ion-item ng-repeat="city in cities">
+          {{city.name}}
+          <ion-option-button class="button-assertive" ng-click="deleteCity($index)"></ion-option-button>
+      </ion-item>
+    </ion-list>
+  </ion-content>
+</ion-view>

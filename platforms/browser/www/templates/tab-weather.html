@@ -1,0 +1,27 @@
+<ion-view view-title="Clima">
+  <ion-content class="scroll-bg">
+    <ion-refresher pulling-text="Atualizar..." on-refresh="doRefresh()">
+    </ion-refresher>
+    <ion-slide-box does-continue="true">
+      <ion-slide ng-repeat="item in citiesWeather" ng-cloak>
+        <div class="card padding">
+
+          <div class="item item-body">
+
+            <div class="row">
+              <div class="col" style="font-size: 18px;">{{item.realName}}</div>
+            </div>
+            <hr>
+            <div class="row padding">
+              <div class="col" style="font-size: 64px; text-align: center;">
+                <img src="{{item.icon}}" /> 
+                {{ Math.ceil(item.main.temp) }} &deg;C
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </ion-slide>
+    </ion-slide-box>
+  </ion-content>
+</ion-view>
