@@ -2,20 +2,40 @@ angular.module('senior.weather.controllers', [])
 
 .constant('CITIES_STORAGE', 'senior.weather.cities')
 
-.controller('WeatherCtrl', function($scope, $http, $localstorage, $openweathermap, $ionicLoading, $timeout, $ionicSlideBoxDelegate, $state, CITIES_STORAGE) {
+.controller('WeatherCtrl', function($scope, $localstorage, $cordovaGeolocation, $openweathermap, $ionicLoading, $timeout, $ionicSlideBoxDelegate, $state, CITIES_STORAGE) {
     var loadWeather = function() {
         var cities = $localstorage.getObject(CITIES_STORAGE) || {};
 
-        if (Object.keys(cities).length == 0) {
-            $state.go("tab.cities");
-        } else {
+        // if (Object.keys(cities).length == 0) {
+        //     $state.go("tab.cities");
+        // } else {
             $ionicLoading.show({
                 template: 'Loading...'
             });
 
+            alert(1);
+            $cordovaGeolocation
+                .getCurrentPosition({
+                    timeout: 10000,
+                    enableHighAccuracy: false
+                })
+                .then(function(position) {
+                    alert(JSON.stringify(position));
+                    var lat = position.coords.latitude;
+                    var lon = position.coords.longitude;
+
+                    $openweathermap.getWeatherByLatLon(lat, lon);
+                    $scope.loading = false;
+
+                }, function(err) {
+                    alert(err);
+                    //TODO Display error message
+                });
+
             angular.forEach(cities, function(city){
                 if (city.name != '') {
-                    $openweathermap.getWeatherCondition(city.name);
+                    $openweathermap.getWeatherByName(city.name);
+                    $scope.loading = false;
                 }
             });
 
@@ -25,33 +45,25 @@ angular.module('senior.weather.controllers', [])
                 $ionicSlideBoxDelegate.update();
                 $ionicLoading.hide();
             }, 1000);
-        };
+        // }
     };
 
-    // Slider
-    $scope.options = {
-      loop: false,
-      effect: 'fade',
-      speed: 500,
-    }
+    // Slider - Swiper
+    // $scope.options = {
+    //   loop: false,
+    //   effect: 'fade',
+    //   speed: 500,
+    // }
 
-    $scope.$on("$ionicSlides.sliderInitialized", function(event, data){
-      // data.slider is the instance of Swiper
-      $scope.slider = data.slider;
-    });
+    // $scope.$on("$ionicSlides.sliderInitialized", function(event, data){
+    //   // data.slider is the instance of Swiper
+    //   $scope.slider = data.slider;
+    // });
 
     $scope.doRefresh = function() {
         loadWeather();
         $scope.$broadcast('scroll.refreshComplete');
         $scope.$apply()
-    };
-
-    $scope.getMonthName = function(dt) {
-        return $openweathermap.getMonthName(dt);
-    };
-
-    $scope.getDayName = function(dt) {
-        return $openweathermap.getDayName(dt);
     };
 
     loadWeather();

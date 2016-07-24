@@ -71,12 +71,12 @@
             "PACKAGE_NAME": "com.ionicframework.starter"
         },
         "cordova-plugin-geolocation": {
-            "PACKAGE_NAME": "com.ionicframework.senior108978"
+            "PACKAGE_NAME": "br.com.innoapps.senior.weather"
         }
     },
     "dependent_plugins": {
         "cordova-plugin-compat": {
-            "PACKAGE_NAME": "com.ionicframework.senior108978"
+            "PACKAGE_NAME": "br.com.innoapps.senior.weather"
         }
     }
 }

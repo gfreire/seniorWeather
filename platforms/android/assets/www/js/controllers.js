@@ -1,76 +1,101 @@
-angular.module('senior.weather.controllers', [])
+angular.module('senior.weather.controllers', ['ngCordova'])
 
 .constant('CITIES_STORAGE', 'senior.weather.cities')
 
-.controller('WeatherCtrl', function($scope, $http, $localstorage, $owm, $ionicPopup, $timeout, $ionicSlideBoxDelegate, $ionicLoading, $state) {
-    // var loadWeather = function() {
-    //     var cities = $localstorage.getObject('CITIES_STORAGE') || {};
+.controller('WeatherCtrl', function($scope, $localstorage, $cordovaGeolocation, $openweathermap, $ionicLoading, $timeout, $ionicSlideBoxDelegate, $state, CITIES_STORAGE) {
+    var loadWeather = function() {
+        var cities = $localstorage.getObject(CITIES_STORAGE) || {};
 
-    //     if (Object.keys(weatherLocations).length == 0) {
-    //         $state.go("tab.locations");
-    //     } else {
-    //         $ionicLoading.show({
-    //             template: 'Loading weather...'
-    //         });
+        // if (Object.keys(cities).length == 0) {
+        //     $state.go("tab.cities");
+        // } else {
+            $ionicLoading.show({
+                template: 'Loading...'
+            });
 
-    //         angular.forEach(weatherLocations, function(wloc){
-    //             if (typeof wloc.name != 'undefined') {
-    //                 $owm.getWeatherCondition(wloc.name);
-    //             }
-    //         });
+            $cordovaGeolocation
+                .getCurrentPosition({
+                    timeout: 10000,
+                    enableHighAccuracy: false
+                })
+                .then(function(position) {
+                    alert(JSON.stringify(position));
+                    var lat = position.coords.latitude;
+                    var lon = position.coords.longitude;
 
-    //         $scope.Math = window.Math;
+                    $openweathermap.getWeatherByLatLon(lat, lon);
+                    $scope.loading = false;
 
-    //         $timeout(function(){
-    //             $ionicSlideBoxDelegate.update();
-    //             $ionicLoading.hide();
-    //         }, 1000);
-    //     };
-    // };
+                }, function(err) {
+                    //TODO Display error message
+                });
 
-    // $scope.doRefresh = function() {
-    //     loadWeather();
-    //     $scope.$broadcast('scroll.refreshComplete');
-    //     $scope.$apply()
-    // };
+            angular.forEach(cities, function(city){
+                if (city.name != '') {
+                    $openweathermap.getWeatherByName(city.name);
+                    $scope.loading = false;
+                }
+            });
 
-    // $scope.getMonthName = function(dt) {
-    //     return $owm.getMonthName(dt);
-    // };
+            $scope.Math = window.Math;
 
-    // $scope.getDayName = function(dt) {
-    //     return $owm.getDayName(dt);
-    // };
+            $timeout(function(){
+                $ionicSlideBoxDelegate.update();
+                $ionicLoading.hide();
+            }, 1000);
+        // }
+    };
 
-    // loadWeather();
+    // Slider - Swiper
+    // $scope.options = {
+    //   loop: false,
+    //   effect: 'fade',
+    //   speed: 500,
+    // }
+
+    // $scope.$on("$ionicSlides.sliderInitialized", function(event, data){
+    //   // data.slider is the instance of Swiper
+    //   $scope.slider = data.slider;
+    // });
+
+    $scope.doRefresh = function() {
+        loadWeather();
+        $scope.$broadcast('scroll.refreshComplete');
+        $scope.$apply()
+    };
+
+    loadWeather();
 })
 
-.controller('CitiesCtrl', function($scope, $localstorage) {
+.controller('CitiesCtrl', function($scope, $localstorage, CITIES_STORAGE) {
 
-    $scope.model = {city:null};
+    $scope.model = {city:''};
 
-    $scope.addCity = function(city){
+    $scope.addCity = function(city) {
 
-        var cities = $localstorage.getObject('CITIES_STORAGE') || {};
+        var cities = $localstorage.getObject(CITIES_STORAGE) || {};
 
+        if (Object.keys(cities).length == 0) {
+          cities = [];
+        }
         cities.push({'name':city});
         
-        $localstorage.setObject('CITIES_STORAGE', cities);
+        $localstorage.setObject(CITIES_STORAGE, cities);
 
         $scope.cities = cities;
 
         $scope.model = {city:''};
-    });
+    }
 
-    $scope.cities = $localstorage.getObject('CITIES_STORAGE');
+    $scope.cities = $localstorage.getObject(CITIES_STORAGE);
 
     $scope.deleteCity = function(index) {
-        var cities = $localstorage.getObject('CITIES_STORAGE');
+        var cities = $localstorage.getObject(CITIES_STORAGE);
         cities.splice(index, 1);
 
         $scope.cities = cities;
 
-        $localstorage.setObject('CITIES_STORAGE', cities);
+        $localstorage.setObject(CITIES_STORAGE, cities);
     }
 
 });

@@ -21,52 +21,53 @@ angular.module('senior.weather.services', [])
 
 .constant('API_KEY', 'fb786585d388f297541d1ff3dceae83e')
 
-.service('$owm', ['$http', '$localstorage', '$rootScope', function($http, $localstorage, $rootScope) {
+.constant('ICON_BASE_PATH', 'http://openweathermap.org/img/w/')
+
+.service('$openweathermap', ['$http', '$localstorage', '$rootScope', 'API_KEY', 'ICON_BASE_PATH', function($http, $localstorage, $rootScope, API_KEY, ICON_BASE_PATH) {
 
     this.$scope = $rootScope;
 
     var _this = this;
 
-    this.getWeatherCondition = function(city) {
+    this.getWeatherByLatLon = function(lat, lon) {
+
+        _this.$scope.citiesWeather = [];
+
+        // $http.get('http://api.openweathermap.org/data/2.5/forecast/daily?q='+city+'&appid='+API_KEY+'&units=metric&cnt=5&lang=pt').success(
+        $http.get('http://api.openweathermap.org/data/2.5/weather?lat='+lat+'&lon='+lon+'&appid='+API_KEY+'&units=metric&cnt=5&lang=pt').success(
+            function(data, status, headers, config) {
+
+                data.icon = ICON_BASE_PATH + data.weather[0].icon + ".png";
+                data.realName = 'Localização Atual';
+                _this.$scope.citiesWeather.push(data);
+
+        }).error(function(data, status, headers, config) {
+
+        }).finally(function() {
+            _this.$scope.hide();
+        });
+    };
+
+    this.getWeatherByName = function(city) {
 
         if (city == '') {
             city = 'Campinas';
         }
 
-        _this.$scope.weatherItems = [];
+        _this.$scope.citiesWeather = [];
 
-        $http.get('http://api.openweathermap.org/data/2.5/weather?q='+city+'&appid='+API_KEY+'&units=metrics&count=5&lang=pt').success(
+        // $http.get('http://api.openweathermap.org/data/2.5/forecast/daily?q='+city+'&appid='+API_KEY+'&units=metric&cnt=5&lang=pt').success(
+        $http.get('http://api.openweathermap.org/data/2.5/weather?q='+city+'&appid='+API_KEY+'&units=metric&cnt=5&lang=pt').success(
             function(data, status, headers, config) {
 
-                 _this.getIcon(data).then(function(d){
-                    var prefix = 'wi wi-';
-                    var code = data.weather[0].id;
-                    var icon = d.data[code].icon;
+                data.icon = ICON_BASE_PATH + data.weather[0].icon + ".png";
+                data.realName = city;
+                _this.$scope.citiesWeather.push(data);
 
-                    if (!(code > 699 && code < 800) && !(code > 899 && code < 1000)) {
-                        icon = 'day-' + icon;
-                    }
-
-                    icon = prefix + icon;
-
-                    data.weatherIcon = icon;
-                    data.realName = location_name;
-                    _this.$scope.weatherItems.push(data);
-                });
         }).error(function(data, status, headers, config) {
 
         }).finally(function() {
-            //$scope.hide();
+            _this.$scope.hide();
         });
-    };
-
-    this.getMonthName = function(dt) {
-
-        return new Date(dt).toLocaleString({ month: "short" });
-    };
-
-    this.getDayName = function(dt) {
-
-        return new Date(dt).toLocaleString({ weekday: "long" });
     };
 }]);

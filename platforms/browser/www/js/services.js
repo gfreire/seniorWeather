@@ -29,7 +29,26 @@ angular.module('senior.weather.services', [])
 
     var _this = this;
 
-    this.getWeatherCondition = function(city) {
+    this.getWeatherByLatLon = function(lat, lon) {
+
+        _this.$scope.citiesWeather = [];
+
+        // $http.get('http://api.openweathermap.org/data/2.5/forecast/daily?q='+city+'&appid='+API_KEY+'&units=metric&cnt=5&lang=pt').success(
+        $http.get('http://api.openweathermap.org/data/2.5/weather?lat='+lat+'&lon='+lon+'&appid='+API_KEY+'&units=metric&cnt=5&lang=pt').success(
+            function(data, status, headers, config) {
+
+                data.icon = ICON_BASE_PATH + data.weather[0].icon + ".png";
+                data.realName = 'Localização Atual';
+                _this.$scope.citiesWeather.push(data);
+
+        }).error(function(data, status, headers, config) {
+
+        }).finally(function() {
+            _this.$scope.hide();
+        });
+    };
+
+    this.getWeatherByName = function(city) {
 
         if (city == '') {
             city = 'Campinas';
@@ -50,15 +69,5 @@ angular.module('senior.weather.services', [])
         }).finally(function() {
             _this.$scope.hide();
         });
-    };
-
-    this.getMonthName = function(dt) {
-
-        return new Date(dt).toLocaleString({ month: "short" });
-    };
-
-    this.getDayName = function(dt) {
-
-        return new Date(dt).toLocaleString({ weekday: "long" });
     };
 }]);

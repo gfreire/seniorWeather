@@ -1,21 +1,38 @@
-angular.module('senior.weather.controllers', [])
+angular.module('senior.weather.controllers', ['ngCordova'])
 
 .constant('CITIES_STORAGE', 'senior.weather.cities')
 
-.controller('WeatherCtrl', function($scope, $http, $localstorage, $openweathermap, $ionicLoading, $timeout, $ionicSlideBoxDelegate, $state, CITIES_STORAGE) {
+.controller('WeatherCtrl', function($scope, $localstorage, $cordovaGeolocation, $rootScope, $openweathermap, $ionicLoading, $timeout, $ionicSlideBoxDelegate, $state, CITIES_STORAGE) {
     var loadWeather = function() {
         var cities = $localstorage.getObject(CITIES_STORAGE) || {};
 
-        if (Object.keys(cities).length == 0) {
-            $state.go("tab.cities");
-        } else {
+        // if (Object.keys(cities).length == 0) {
+        //     $state.go("tab.cities");
+        // } else {
             $ionicLoading.show({
                 template: 'Loading...'
             });
 
+            $cordovaGeolocation
+                .getCurrentPosition({
+                    timeout: 10000,
+                    enableHighAccuracy: false
+                })
+                .then(function(position) {
+                    var lat = position.coords.latitude;
+                    var lon = position.coords.longitude;
+
+                    $openweathermap.getWeatherByLatLon(lat, lon);
+                    $scope.loading = false;
+
+                }, function(err) {
+                    //TODO Display error message
+                });
+
             angular.forEach(cities, function(city){
                 if (city.name != '') {
-                    $openweathermap.getWeatherCondition(city.name);
+                    $openweathermap.getWeatherByName(city.name);
+                    $scope.loading = false;
                 }
             });
 
@@ -25,7 +42,7 @@ angular.module('senior.weather.controllers', [])
                 $ionicSlideBoxDelegate.update();
                 $ionicLoading.hide();
             }, 1000);
-        };
+        // }
     };
 
     // Slider - Swiper
@@ -41,6 +58,7 @@ angular.module('senior.weather.controllers', [])
     // });
 
     $scope.doRefresh = function() {
+        $rootScope.citiesWeather = [];
         loadWeather();
         $scope.$broadcast('scroll.refreshComplete');
         $scope.$apply()
